@@ -1,11 +1,19 @@
 // VoiceDiary Dialog — React Native port of src/components/ui/dialog.tsx.
-// The original used Radix Dialog primitives. We re-implement the same
-// controlled API (open, onOpenChange, DialogContent, DialogHeader, etc.)
-// using react-native-modal.
+//
+// Controlled API: { open, onOpenChange, DialogContent, DialogHeader, ... }.
+//
+// Implementation note: the previous version used `react-native-modal`,
+// which is a native-only animation library that does NOT render on web.
+// On web the Modal would mount but never paint, so dialogs (entry detail,
+// alert confirmations, export modal) silently failed to appear.
+//
+// This version uses React Native's built-in `Modal` from "react-native",
+// which react-native-web polyfills correctly. We add the backdrop,
+// fade-in animation, and centering manually so the visual result is
+// equivalent to what react-native-modal gave us on native.
 
 import * as React from "react";
-import { Pressable, Text, View } from "react-native";
-import Modal from "react-native-modal";
+import { Modal, Pressable, Text, View } from "react-native";
 
 import { cn } from "@/lib/utils";
 import { X } from "lucide-react-native";
@@ -13,25 +21,30 @@ import { X } from "lucide-react-native";
 function Dialog({ open, onOpenChange, children }) {
   return (
     <Modal
-      isVisible={!!open}
-      onBackdropPress={() => onOpenChange?.(false)}
-      onBackButtonPress={() => onOpenChange?.(false)}
-      animationIn="fade"
-      animationOut="fadeOut"
-      animationInTiming={200}
-      animationOutTiming={150}
-      backdropOpacity={0.5}
-      style={{ margin: 0, alignItems: "center", justifyContent: "center" }}
-      useNativeDriver
-      hideModalContentWhileAnimating
+      visible={!!open}
+      transparent
+      animationType="fade"
+      onRequestClose={() => onOpenChange?.(false)}
     >
-      {children}
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: "rgba(0, 0, 0, 0.5)",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+        onStartShouldSetResponder={() => {
+          onOpenChange?.(false);
+          return false;
+        }}
+      >
+        {children}
+      </View>
     </Modal>
   );
 }
 
 function DialogTrigger({ children, asChild, ...props }) {
-  // In RN we don't have a slot primitive; children with onPress handle this.
   return children;
 }
 
@@ -110,7 +123,6 @@ function DialogDescription({ className, children, ...props }) {
 }
 
 function DialogClose() {
-  // No-op in this port — close handling is wired through onOpenChange.
   return null;
 }
 
@@ -119,7 +131,7 @@ function DialogPortal({ children }) {
 }
 
 function DialogOverlay() {
-  return null; // Modal handles overlay internally
+  return null;
 }
 
 export {
