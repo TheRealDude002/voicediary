@@ -81,15 +81,20 @@ export const useEntryStore = create((set, get) => ({
       return { entries: list, searchResults: search };
     }),
 
-  search: async (query) => {
-    const q = query.trim();
-    if (!q) {
+    search: async (query) => {
+    const q = (query ?? "").trim();
+    const tags = get().activeTagFilters;
+
+    // If both query and tag filters are empty, clear results and bail.
+    // Otherwise run the search — the backend supports tag-only search
+    // (returns all entries with non-empty transcripts matching the tags).
+    if (!q && tags.length === 0) {
       set({ searchResults: null, searchQuery: "", isSearching: false });
       return;
     }
     set({ isSearching: true, searchQuery: q, searchError: null });
     try {
-      const results = await entryApi.search(q, get().activeTagFilters);
+      const results = await entryApi.search(q, tags);
       set({ searchResults: results, isSearching: false });
     } catch (err) {
       set({
@@ -97,7 +102,7 @@ export const useEntryStore = create((set, get) => ({
         searchError: err instanceof Error ? err.message : "Search failed",
       });
     }
-  },
+  },,
 
   clearSearch: () =>
     set({ searchResults: null, searchQuery: "", searchError: null }),
