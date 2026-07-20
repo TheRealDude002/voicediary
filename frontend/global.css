@@ -1,0 +1,101 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* VoiceDiary color tokens — warm cream paper palette (light) */
+:root {
+  --radius: 14px;
+
+  /* Warm cream paper background */
+  --background: 250 246 238;     /* oklch(0.985 0.012 80) approx */
+  --foreground: 60 50 40;        /* oklch(0.22 0.02 50) approx */
+
+  --card: 255 252 245;
+  --card-foreground: 60 50 40;
+
+  --popover: 255 252 245;
+  --popover-foreground: 60 50 40;
+
+  /* Primary — warm terracotta / rose-brown */
+  --primary: 178 92 70;
+  --primary-foreground: 250 246 238;
+
+  /* Secondary — soft sand */
+  --secondary: 240 230 215;
+  --secondary-foreground: 88 70 55;
+
+  --muted: 240 232 218;
+  --muted-foreground: 130 110 90;
+
+  /* Accent — warm amber */
+  --accent: 235 220 190;
+  --accent-foreground: 88 70 55;
+
+  --destructive: 220 80 70;
+  --destructive-foreground: 255 255 255;
+
+  --border: 225 215 200;
+  --input: 225 215 200;
+  --ring: 178 92 70;
+
+  --chart-1: 200 110 70;
+  --chart-2: 100 160 170;
+  --chart-3: 90 100 130;
+  --chart-4: 220 180 90;
+  --chart-5: 210 160 80;
+
+  --sidebar: 245 238 220;
+  --sidebar-foreground: 60 50 40;
+  --sidebar-primary: 178 92 70;
+  --sidebar-primary-foreground: 250 246 238;
+  --sidebar-accent: 235 220 190;
+  --sidebar-accent-foreground: 88 70 55;
+  --sidebar-border: 225 215 200;
+  --sidebar-ring: 178 92 70;
+}
+
+/* Dark theme — warm cocoa bean */
+.dark {
+  --background: 46 40 35;
+  --foreground: 245 240 230;
+
+  --card: 60 52 46;
+  --card-foreground: 245 240 230;
+
+  --popover: 60 52 46;
+  --popover-foreground: 245 240 230;
+
+  --primary: 220 175 130;
+  --primary-foreground: 46 40 35;
+
+  --secondary: 78 68 60;
+  --secondary-foreground: 245 240 230;
+
+  --muted: 78 68 60;
+  --muted-foreground: 190 175 150;
+
+  --accent: 100 88 75;
+  --accent-foreground: 245 240 230;
+
+  --destructive: 200 90 80;
+  --destructive-foreground: 255 255 255;
+
+  --border: 100 88 75;
+  --input: 100 88 75;
+  --ring: 220 175 130;
+
+  --chart-1: 110 130 200;
+  --chart-2: 130 200 160;
+  --chart-3: 210 160 80;
+  --chart-4: 175 130 200;
+  --chart-5: 200 110 100;
+
+  --sidebar: 60 52 46;
+  --sidebar-foreground: 245 240 230;
+  --sidebar-primary: 220 175 130;
+  --sidebar-primary-foreground: 46 40 35;
+  --sidebar-accent: 100 88 75;
+  --sidebar-accent-foreground: 245 240 230;
+  --sidebar-border: 100 88 75;
+  --sidebar-ring: 220 175 130;
+}

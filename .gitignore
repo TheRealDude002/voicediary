@@ -1,0 +1,66 @@
+# ──────────────────────────────────────────────────────
+# VoiceDiary v2 — root .gitignore
+# Covers both /frontend (Expo) and /backend (Node+Express)
+# ──────────────────────────────────────────────────────
+
+# ─── Dependencies ───────────────────────────────────
+node_modules/
+.pnp/
+.pnp.js
+.yarn/
+.yarn-integrity
+
+# ─── Secrets / env ──────────────────────────────────
+.env
+.env.local
+.env.development
+.env.production
+.env.*.local
+# Keep the example checked in
+!.env.example
+
+# ─── Expo / React Native (frontend) ────────────────
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# iOS / Android build artifacts
+ios/
+android/
+*.ipa
+*.apk
+*.aab
+
+# ─── Backend ───────────────────────────────────────
+uploads/
+coverage/
+.nyc_output/
+*.log
+logs/
+
+# ─── Runtime / OS / editor ─────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.history/
+
+# ─── Render / Vercel / misc ────────────────────────
+.vercel/
+.render/
+.env.preview
+.env.vercel
