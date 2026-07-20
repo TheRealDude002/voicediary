@@ -102,7 +102,7 @@ export const useEntryStore = create((set, get) => ({
         searchError: err instanceof Error ? err.message : "Search failed",
       });
     }
-  },,
+  },
 
   clearSearch: () =>
     set({ searchResults: null, searchQuery: "", searchError: null }),
