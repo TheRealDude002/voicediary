@@ -4,7 +4,7 @@
 
 import * as React from "react";
 import { Pressable, Text, View } from "react-native";
-import Modal from "react-native-modal";
+import { Modal, Pressable, Text, View } from "react-native"
 
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "./button";
@@ -12,19 +12,25 @@ import { buttonVariants } from "./button";
 function AlertDialog({ open, onOpenChange, children }) {
   return (
     <Modal
-      isVisible={!!open}
-      onBackdropPress={() => onOpenChange?.(false)}
-      onBackButtonPress={() => onOpenChange?.(false)}
-      animationIn="fade"
-      animationOut="fadeOut"
-      animationInTiming={200}
-      animationOutTiming={150}
-      backdropOpacity={0.5}
-      style={{ margin: 0, alignItems: "center", justifyContent: "center" }}
-      useNativeDriver
-      hideModalContentWhileAnimating
+      visible={!!open}
+      transparent
+      animationType="fade"
+      onRequestClose={() => onOpenChange?.(false)}
     >
-      {children}
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: "rgba(0, 0, 0, 0.5)",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+        onStartShouldSetResponder={() => {
+          onOpenChange?.(false);
+          return false;
+        }}
+      >
+        {children}
+      </View>
     </Modal>
   );
 }
