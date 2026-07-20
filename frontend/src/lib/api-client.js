@@ -15,6 +15,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Sharing from "expo-sharing";
 import * as FileSystem from "expo-file-system";
+import { Platform } from "react-native";
 
 const API_BASE_URL =
   // Expo "public" env vars are inlined at build time
@@ -219,19 +220,21 @@ export const entryApi = {
     // On web (browser), FormData's {uri,name,type} syntax from RN doesn't
     // work — the browser can't read `uri:`. We fetch the blob URI manually
     // and attach a real File object. On native we keep the RN syntax.
-    const isWeb =
-      typeof window !== "undefined" &&
-      typeof window.document !== "undefined" &&
-      typeof global.FileReader !== "undefined" &&
-      // expo-av on web produces blob: or data: URIs
-      (fileUri.startsWith("blob:") || fileUri.startsWith("data:"));
-
+       const isWeb = Platform.OS === "web";
     if (isWeb) {
       const res = await fetch(fileUri);
       const blob = await res.blob();
       const file = new File([blob], filename, {
         type: mimeType || "audio/webm",
       });
+      form.append("audio", file);
+    } else {
+      form.append("audio", {
+        uri: fileUri,
+        name: filename,
+        type: mimeType || "audio/m4a",
+      });
+    }
       form.append("audio", file);
     } else {
       form.append("audio", {
