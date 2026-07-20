@@ -4,7 +4,7 @@
 // using react-native-modal positioned to the trigger.
 
 import * as React from "react";
-import { Pressable, Text, View } from "react-native";
+
 import { Modal, Pressable, Text, View } from "react-native";
 
 import { cn } from "@/lib/utils";
