@@ -12,6 +12,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Audio } from "expo-av";
 import * as FileSystem from "expo-file-system";
+import { Platform } from "react-native"
 
 export const RecorderStatus = {
   IDLE: "idle",
@@ -126,7 +127,7 @@ export function useRecorder() {
       );
 
       recordingRef.current = recording;
-      setMimeType("audio/m4a");
+      setMimeType(Platform.OS === "web" ? "audio/webm" : "audio/m4a");
       startTimeRef.current = Date.now();
       startTimer();
       setStatus("recording");
