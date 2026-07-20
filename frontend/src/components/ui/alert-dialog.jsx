@@ -3,7 +3,6 @@
 // AlertDialogHeader, AlertDialogFooter, etc.) implemented with react-native-modal.
 
 import * as React from "react";
-import { Pressable, Text, View } from "react-native";
 import { Modal, Pressable, Text, View } from "react-native"
 
 import { cn } from "@/lib/utils";
