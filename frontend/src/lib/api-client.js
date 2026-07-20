@@ -5,20 +5,21 @@
 // All requests go through `apiFetch()` which:
 //   - prefixes the configured API_BASE_URL
 //   - injects the bearer token from cache/storage
-//   - auto-refreshes the access token on 401 (using the refresh token)
+//   - auto-refreshs the access token on 401 (using the refresh token)
 //   - parses the JSON envelope `{ data }` or `{ error: { message, code, status } }`
 //   - throws a typed Error with `.code` and `.status` attached
 //
 // Configure the backend URL via the EXPO_PUBLIC_API_URL env var
 // (declared in app.json → expo.env). Falls back to localhost:4000 for dev.
 
+import { Platform } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Sharing from "expo-sharing";
 import * as FileSystem from "expo-file-system";
-import { Platform } from "react-native";
+
+const IS_WEB = Platform.OS === "web";
 
 const API_BASE_URL =
-  // Expo "public" env vars are inlined at build time
   (typeof process !== "undefined" && process.env && process.env.EXPO_PUBLIC_API_URL) ||
   "http://localhost:4000/api";
 
@@ -29,9 +30,6 @@ let cachedToken = null;
 let cachedRefreshToken = null;
 
 export function getAccessToken() {
-  // The auth-store reads this synchronously during bootstrap, so we expose
-  // the cached value via a module-level variable kept in sync by
-  // setAccessToken().
   return cachedToken;
 }
 
@@ -48,8 +46,6 @@ export async function setAccessToken(access) {
   await setTokens(access, cachedRefreshToken);
 }
 
-// On module load, prime cached tokens from storage so the auth store
-// can read them synchronously during bootstrap.
 (async () => {
   try {
     cachedToken = await AsyncStorage.getItem(TOKEN_KEY);
@@ -92,16 +88,12 @@ async function refreshTokens() {
   }
 }
 
-/**
- * Internal fetch wrapper. Returns parsed JSON on success, throws ApiError
- * on failure. Auto-refreshes on 401 once.
- */
 async function apiFetch(path, { authRetry = true, ...init } = {}) {
   const url = path.startsWith("http") ? path : `${API_BASE_URL}${path}`;
 
   const headers = {
     ...(init.body instanceof FormData
-      ? {} // let fetch set multipart boundary
+      ? {}
       : { "Content-Type": "application/json" }),
     ...(init.headers || {}),
   };
@@ -114,7 +106,6 @@ async function apiFetch(path, { authRetry = true, ...init } = {}) {
   try {
     res = await fetch(url, { ...init, headers });
   } catch (err) {
-    // Network failure (offline, DNS, etc.) — throw with a useful code
     throw new ApiError(
       err instanceof Error ? err.message : "Network request failed",
       0,
@@ -122,7 +113,6 @@ async function apiFetch(path, { authRetry = true, ...init } = {}) {
     );
   }
 
-  // 401 → try refresh once, then retry
   if (res.status === 401 && authRetry) {
     const refreshed = await refreshTokens();
     if (refreshed) {
@@ -137,7 +127,6 @@ async function apiFetch(path, { authRetry = true, ...init } = {}) {
     }
   }
 
-  // Empty body (e.g. 204) → return null
   const text = await res.text();
   const body = text ? JSON.parse(text) : null;
 
@@ -183,7 +172,7 @@ export const authApi = {
     try {
       await apiFetch("/auth/logout", { method: "POST" });
     } catch {
-      // ignore — we'll clear local tokens anyway
+      // ignore
     }
     await setTokens(null, null);
   },
@@ -212,23 +201,58 @@ export const entryApi = {
   get: (id) => apiFetch(`/entries/${id}`).then((b) => b.entry),
 
   create: async ({ fileUri, mimeType, duration, mood, tags }) => {
-    const filename = fileUri.split("/").pop() || `audio-${Date.now()}`;
-
-    // Build a FormData with the audio file
     const form = new FormData();
 
-    // On web (browser), FormData's {uri,name,type} syntax from RN doesn't
-    // work — the browser can't read `uri:`. We fetch the blob URI manually
-    // and attach a real File object. On native we keep the RN syntax.
-    const isWeb = Platform.OS === "web";
-    if (isWeb) {
-      const res = await fetch(fileUri);
-      const blob = await res.blob();
+    if (IS_WEB) {
+      // ── Web path ───────────────────────────────────────────────
+      // Browsers can't use React Native's { uri, name, type } shape —
+      // the browser FormData stringifies it as "[object Object]", so
+      // the backend sees no actual file. We must fetch the Blob URL
+      // expo-av produced and wrap it in a real File object so the
+      // browser sets the multipart boundary + content-type correctly.
+      const filename =
+        (fileUri && fileUri.split("/").pop()) ||
+        `audio-${Date.now()}.webm`;
+
+      let blob;
+      try {
+        const resp = await fetch(fileUri);
+        if (!resp.ok) {
+          throw new ApiError(
+            `Failed to read local recording (HTTP ${resp.status})`,
+            0,
+            "local_audio_read_failed"
+          );
+        }
+        blob = await resp.blob();
+      } catch (err) {
+        if (err instanceof ApiError) throw err;
+        throw new ApiError(
+          err instanceof Error ? err.message : "Failed to read local recording",
+          0,
+          "local_audio_read_failed"
+        );
+      }
+
+      if (!blob || blob.size === 0) {
+        throw new ApiError(
+          "Local recording is empty — try recording again.",
+          0,
+          "empty_local_audio"
+        );
+      }
+
       const file = new File([blob], filename, {
         type: mimeType || "audio/webm",
       });
       form.append("audio", file);
     } else {
+      // ── Native path ────────────────────────────────────────────
+      // React Native's FormData accepts the { uri, name, type } shape
+      // directly — the bridge resolves the uri and streams the bytes.
+      const filename =
+        (fileUri && fileUri.split("/").pop()) ||
+        `audio-${Date.now()}.m4a`;
       form.append("audio", {
         uri: fileUri,
         name: filename,
@@ -277,7 +301,6 @@ export const entryApi = {
 // ─────────────────────────────────────────────────────────────
 
 export async function exportEntry(id, format) {
-  // The server streams the file back — fetch it, save to FS cache, share.
   const url = `${API_BASE_URL}/export/entry/${id}/${format}`;
   const res = await fetch(url, {
     headers: { Authorization: `Bearer ${cachedToken}` },
@@ -295,7 +318,6 @@ export async function exportEntry(id, format) {
   const filename = `voicediary-${id}.${format}`;
   const fileUri = `${FileSystem.cacheDirectory}${filename}`;
 
-  // Convert blob → base64 → file
   const reader = new FileReader();
   const base64 = await new Promise((resolve, reject) => {
     reader.onloadend = () => {
@@ -372,7 +394,6 @@ export async function shareFile(fileUri, filename, mime) {
   });
 }
 
-// Backwards-compat — old code referenced this
 export async function downloadBlob() {
   // No-op — exports go through exportEntry / exportBulk above.
 }
