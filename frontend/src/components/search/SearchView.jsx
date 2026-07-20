@@ -176,22 +176,29 @@ export function SearchView() {
       )}
 
       {!isSearching && hasSearched && !hasResults && (
-        <View className="rounded-xl border border-dashed border-border bg-card/50 p-8 items-center">
-          <SearchIcon size={32} color="rgba(130, 110, 90, 0.6)" />
-          <Text className="mt-3 text-sm text-muted-foreground text-center">
-            No entries match "{searchQuery}"
-            {activeTagFilters.length > 0 && " with these filters"}.
-          </Text>
-        </View>
-      )}
+  <View className="rounded-xl border border-dashed border-border bg-card/50 p-8 items-center">
+    <SearchIcon size={32} color="rgba(130, 110, 90, 0.6)" />
+    <Text className="mt-3 text-sm text-muted-foreground text-center">
+      {searchQuery
+        ? `No entries match "${searchQuery}"${
+            activeTagFilters.length > 0 ? " with these filters" : ""
+          }.`
+        : activeTagFilters.length > 0
+        ? "No entries match these filters."
+        : "No entries yet — record one to get started."}
+    </Text>
+  </View>
+)}
 
-      {!isSearching && !hasSearched && (
-        <View className="rounded-xl border border-dashed border-border bg-card/50 p-8 items-center">
-          <Text className="text-sm text-muted-foreground text-center">
-            Type above to search across all your transcripts.
-          </Text>
-        </View>
-      )}
+{!isSearching && !hasSearched && (
+  <View className="rounded-xl border border-dashed border-border bg-card/50 p-8 items-center">
+    <Text className="text-sm text-muted-foreground text-center">
+      {activeTagFilters.length > 0
+        ? "Tap a filter to see matching entries, or type to search transcripts."
+        : "Type above to search across all your transcripts, or tap a filter below."}
+    </Text>
+  </View>
+)}
 
       {/* Results */}
       {!isSearching && hasResults && (
