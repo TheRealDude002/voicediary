@@ -210,16 +210,37 @@ export const entryApi = {
 
   get: (id) => apiFetch(`/entries/${id}`).then((b) => b.entry),
 
-  create: async ({ fileUri, mimeType, duration, mood, tags }) => {
+    create: async ({ fileUri, mimeType, duration, mood, tags }) => {
     const filename = fileUri.split("/").pop() || `audio-${Date.now()}`;
 
     // Build a FormData with the audio file
     const form = new FormData();
-    form.append("audio", {
-      uri: fileUri,
-      name: filename,
-      type: mimeType || "audio/m4a",
-    });
+
+    // On web (browser), FormData's {uri,name,type} syntax from RN doesn't
+    // work — the browser can't read `uri:`. We fetch the blob URI manually
+    // and attach a real File object. On native we keep the RN syntax.
+    const isWeb =
+      typeof window !== "undefined" &&
+      typeof window.document !== "undefined" &&
+      typeof global.FileReader !== "undefined" &&
+      // expo-av on web produces blob: or data: URIs
+      (fileUri.startsWith("blob:") || fileUri.startsWith("data:"));
+
+    if (isWeb) {
+      const res = await fetch(fileUri);
+      const blob = await res.blob();
+      const file = new File([blob], filename, {
+        type: mimeType || "audio/webm",
+      });
+      form.append("audio", file);
+    } else {
+      form.append("audio", {
+        uri: fileUri,
+        name: filename,
+        type: mimeType || "audio/m4a",
+      });
+    }
+
     form.append("duration", String(duration));
     if (mood) form.append("mood", mood);
     if (tags?.length) form.append("tags", JSON.stringify(tags));
