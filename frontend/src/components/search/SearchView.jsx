@@ -29,9 +29,9 @@ export function SearchView() {
   } = useEntryStore();
   const openEntry = useUIStore((s) => s.openEntry);
 
-  const [input, setInput] = useState(searchQuery);
+   const [input, setInput] = useState(searchQuery);
 
-  // Debounce search
+  // Debounce search on text input changes
   useEffect(() => {
     if (input === searchQuery) return;
     const t = setTimeout(() => {
@@ -40,10 +40,23 @@ export function SearchView() {
     return () => clearTimeout(t);
   }, [input, searchQuery, search]);
 
+  // Fire search immediately when tag filters change (no debounce —
+  // tag toggles are explicit user actions and feel laggy with a debounce).
+  // We key on a stable string so the effect only fires when the actual
+  // filter selection changes, not on every store re-render.
+  const filtersKey = activeTagFilters.join(",");
+  useEffect(() => {
+    void search(input);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filtersKey]);
+
   const clear = useCallback(() => {
     setInput("");
-    clearSearch();
-  }, [clearSearch]);
+    // Re-run search with empty query. If tag filters are still active,
+    // the store will return entries matching those tags. If no filters,
+    // the store clears results.
+    void search("");
+  }, [search]);
 
   const hasResults = searchResults && searchResults.length > 0;
   const hasSearched = searchResults !== null;
