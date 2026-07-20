@@ -5,7 +5,7 @@
 
 import * as React from "react";
 import { Pressable, Text, View } from "react-native";
-import Modal from "react-native-modal";
+import { Modal, Pressable, Text, View } from "react-native";
 
 import { cn } from "@/lib/utils";
 import { X } from "lucide-react-native";
@@ -13,18 +13,24 @@ import { X } from "lucide-react-native";
 function Sheet({ open, onOpenChange, children }) {
   return (
     <Modal
-      isVisible={!!open}
-      onBackdropPress={() => onOpenChange?.(false)}
-      onBackButtonPress={() => onOpenChange?.(false)}
-      animationIn="slideInRight"
-      animationOut="slideOutRight"
-      animationInTiming={300}
-      animationOutTiming={250}
-      backdropOpacity={0.5}
-      style={{ margin: 0 }}
-      useNativeDriver
+      visible={!!open}
+      transparent
+      animationType="slide"
+      onRequestClose={() => onOpenChange?.(false)}
     >
-      {children}
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: "rgba(0, 0, 0, 0.5)",
+          flexDirection: "row",
+        }}
+        onStartShouldSetResponder={() => {
+          onOpenChange?.(false);
+          return false;
+        }}
+      >
+        {children}
+      </View>
     </Modal>
   );
 }
