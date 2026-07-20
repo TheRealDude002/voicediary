@@ -4,7 +4,6 @@
 // (the app imports it but does not currently render it).
 
 import * as React from "react";
-import { Pressable, Text, View } from "react-native";
 import { Modal, Pressable, Text, View } from "react-native";
 
 import { cn } from "@/lib/utils";
