@@ -40,7 +40,12 @@ function extFromMime(mime) {
 
 function serializeEntry(entry) {
   if (!entry) return null;
-  const o = entry.toJSON();
+  // entry may be either:
+  //   - a Mongoose Document (from findOne / create / findOneAndUpdate) — has .toJSON()
+  //   - a plain object (from find().lean()) — does NOT have .toJSON()
+  // Calling entry.toJSON() on a lean object throws "entry.toJSON is not a
+  // function", which is why GET /entries was returning 500.
+  const o = typeof entry.toJSON === "function" ? entry.toJSON() : entry;
   return {
     id: o.id,
     userId: o.userId?.toString?.() ?? o.userId,
