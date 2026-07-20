@@ -5,7 +5,7 @@
 
 import * as React from "react";
 import { Pressable, Text, View } from "react-native";
-import Modal from "react-native-modal";
+import { Modal, Pressable, Text, View } from "react-native";
 
 import { cn } from "@/lib/utils";
 
@@ -47,39 +47,40 @@ function DropdownMenuContent({ className, children, align = "end", ...props }) {
   const ctx = React.useContext(DropdownMenuContext);
   return (
     <Modal
-      isVisible={ctx.open}
-      onBackdropPress={ctx.close}
-      onBackButtonPress={ctx.close}
-      animationIn="fadeIn"
-      animationOut="fadeOut"
-      animationInTiming={150}
-      animationOutTiming={120}
-      backdropOpacity={0.25}
-      style={{
-        margin: 0,
-        alignItems: align === "end" ? "flex-end" : "flex-start",
-        justifyContent: "flex-start",
-        paddingTop: 60,
-        paddingRight: align === "end" ? 12 : 0,
-        paddingLeft: align === "end" ? 0 : 12,
-      }}
-      useNativeDriver
-      hideModalContentWhileAnimating
+      visible={ctx.open}
+      transparent
+      animationType="fade"
+      onRequestClose={ctx.close}
     >
       <View
-        data-slot="dropdown-menu-content"
-        className={cn(
-          "bg-popover border border-border rounded-md p-1 shadow-md max-w-[14rem]",
-          className
-        )}
-        {...props}
+        style={{
+          flex: 1,
+          backgroundColor: "rgba(0, 0, 0, 0.25)",
+          alignItems: align === "end" ? "flex-end" : "flex-start",
+          justifyContent: "flex-start",
+          paddingTop: 60,
+          paddingRight: align === "end" ? 12 : 0,
+          paddingLeft: align === "end" ? 0 : 12,
+        }}
+        onStartShouldSetResponder={() => {
+          ctx.close();
+          return false;
+        }}
       >
-        {children}
+        <View
+          data-slot="dropdown-menu-content"
+          className={cn(
+            "bg-popover border border-border rounded-md p-1 shadow-md max-w-[14rem]",
+            className
+          )}
+          {...props}
+        >
+          {children}
+        </View>
       </View>
     </Modal>
   );
 }
-
 function DropdownMenuItem({
   className,
   children,
